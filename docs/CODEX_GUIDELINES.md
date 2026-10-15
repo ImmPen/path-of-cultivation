@@ -1,7 +1,7 @@
 # Path of Cultivation — правила работы с Codex CLI
 
 Дата: 14 октября 2026 года. Среда: Windows/Steam, Docker Desktop, Git; работа с OpenAI API, без MCP.
-Документ не предполагает, что агент уже видит локальный компьютер, игру, DLL или Docker.
+Минимальный мод уже существует: Source/PathOfCultivation.csproj (net10.0), минимальный Mod-класс и About/About.xml. По согласованному заданию он собран в Docker с .NET SDK 10 и загружен в RimWorld 1.7 unstable/WaylithCLR. Это не подтверждает Feature API; manifest B00 и воспроизводимость B01 остаются pending. Доступ агента к игре, DLL и Docker определяется конкретной сессией.
 
 ## 1. До первого API-запроса
 
@@ -65,7 +65,7 @@ Prompt caching может уменьшать цену повторяющейся
 ## 5. Правила кода и scope
 
 - Реализовывать только принятое B00–B09. Новая идея оформляется в backlog, не включается в текущий diff.
-- Не создавать игровые исходники до завершения и review предпроектного этапа.
+- Минимальный bootstrap уже реализован; новые игровые исходники создавать только в рамках согласованной задачи MVP. Не повторять подготовительный этап по устаревшему checklist.
 - Сначала проверить выбранный game build и references. При неизвестном API исследовать сигнатуры, не угадывать chain вызовов.
 - Core не зависит от Verse/RimWorld. Единственный owner — HediffComp; UI не мутирует state напрямую.
 - Не менять DefName, packageId, save-поля и schemaVersion без migration.
@@ -79,7 +79,7 @@ Prompt caching может уменьшать цену повторяющейся
 
 ## 6. Последовательные prompts
 
-Каждый prompt выполняется только после закрытия предшественника. Здесь нет обещания уже доступной среды.
+Prompts ниже — шаблоны согласованных задач, а не список невыполненных шагов. Bootstrap C00/C01 уже подтверждён в части build/load; manifest B00 и воспроизводимость B01 остаются открытыми до начала B03. Для C02 достаточно минимальных условий B02 из MVP_BACKLOG: не требовать предварительно API C03–C07. Дальнейшие задачи следуют зависимостям backlog и проверяют свои API при реализации.
 
 ### C00 — read-only исследование, B00
 
@@ -87,7 +87,7 @@ Prompt caching может уменьшать цену повторяющейся
 
 ### C01 — каркас сборки, B01
 
-«После подтверждённого T0 создай минимальную SDK-style сборку Core и RimWorld adapter по §3–4. Используй подтверждённый net10.0 и pinned references, не копируй game DLL. Не добавляй gameplay. Собери offline, покажи output allowlist и одну ручную проверку загрузки».
+«Минимальная сборка Source/PathOfCultivation.csproj и её загрузка уже подтверждены. Проверь оставшиеся критерии B01: pin SDK/image/packages, clean offline build, output allowlist и повтор в новом контейнере с теми же refs; Core-only загрузку metadata без ошибок. Не пересоздавай каркас ради повтора bootstrap и не перестраивай проект по целевой схеме §3–4 без отдельной согласованной задачи. Не копируй game DLL и не добавляй gameplay».
 
 ### C02 — правила, B02
 
@@ -132,7 +132,7 @@ Prompt caching может уменьшать цену повторяющейся
 
 Формат итогового сообщения агента: изменено → почему → checks executed/results → checks pending → риск/следующий шаг. «Собрано» и «проверено в игре» — разные утверждения.
 
-Рекомендуемый короткий AGENTS.md при начале реализации: scope B00–B09; pinned build; docs authoritative; Core rules; no secrets/game DLL; no DLC/Harmony without decision; no unverified API; обязательная фиксация pending checks. Сам AGENTS.md и исходники в этом предпроектном пакете не создаются.
+Рекомендуемый короткий AGENTS.md при начале реализации: scope B00–B09; pinned build; docs authoritative; Core rules; no secrets/game DLL; no DLC/Harmony without decision; no unverified API; обязательная фиксация pending checks. AGENTS.md и минимальные исходники уже существуют; действующие инструкции AGENTS.md обязательны, менять их без поручения не следует.
 
 ## 8. Spirit Beasts: ограничения будущей разработки
 

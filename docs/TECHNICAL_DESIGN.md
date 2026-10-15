@@ -1,7 +1,7 @@
 # Path of Cultivation — технический проект
 
 Дата: 14 октября 2026 года. Цель: RimWorld 1.7 unstable, далее проверенная стабильная 1.7.
-Это архитектура и план экспериментов, не исходный код и не подтверждение работы на локальной игре пользователя.
+Документ описывает архитектуру и план проверок. Минимальный bootstrap подтверждён разработчиком; работа игровых механик этим не подтверждена.
 
 ## 1. Статус технических сведений
 
@@ -9,27 +9,38 @@
 
 **Подтверждено первичным проектом стороннего разработчика:** сборка FasterGameLoading для 1.7 использует .NET 10, игровые Assembly-CSharp.dll, UnityStubs.dll, Waylith.dll и установленный Harmony. Это практический пример, не официальный контракт Ludeon: [репозиторий](https://github.com/mushroomTW/FasterGameLoading---Continued).
 
-**Рекомендация проекта:** SDK .NET 10, SDK-style csproj, TargetFramework=net10.0. SDK закрепить точной установленной версией через global.json; Docker-образ — digest. LangVersion без preview. Runtime и SDK — разные вещи: SDK собирает библиотеку, игра загружает её своим runtime. Не паковать runtime вместе с модом.
+**Применено в bootstrap:** SDK .NET 10, SDK-style csproj, TargetFramework=net10.0; минимальный мод собран в Docker и загружен в RimWorld 1.7 unstable с WaylithCLR (по согласованному заданию). SDK закрепить точной установленной версией через global.json; Docker-образ — digest. LangVersion без preview. Runtime и SDK — разные вещи: SDK собирает библиотеку, игра загружает её своим runtime. Не паковать runtime вместе с модом.
 
-**Требует локальной проверки:** точный build игры, runtimeconfig, расположение и версии DLL, все используемые API, загрузка выбранного target, Harmony и UI. Старый net472, пути Unity Managed и UnityEngine DLL из 1.6 не использовать по инерции. При противоречии источника локальному build сначала обновить RESEARCH и решение, затем продолжать.
+**Требует локальной проверки:** точный build игры, runtimeconfig, расположение и версии DLL, функциональные API механик и UI. Загрузка минимальной net10.0 DLL подтверждена; Harmony не входит в MVP и проверяется лишь при отдельном решении о патче. Старый net472, пути Unity Managed и UnityEngine DLL из 1.6 не использовать по инерции. При противоречии источника локальному build сначала обновить RESEARCH и решение, затем продолжать.
 
 Harmony 3.0.0-rc.2 существует как prerelease по [релизам автора](https://github.com/pardeike/Harmony/releases). Это не доказывает обязательность этой версии для всякого мода 1.7. Базовый MVP проектируется без Harmony. Если патч понадобится, проверить конкретную Workshop-сборку 1.7, pin совместимой версии и load order; не поставлять свою копию 0Harmony.dll.
 
-## 2. Gate T0: что проверяется до реализации
+## 2. Gate T0: bootstrap и проверки API
 
-Разработчик выполняет на Windows, агент читает только явно подключённые файлы.
+### Bootstrap Verification — B00/B01
 
-1. Подтвердить запуск именно 1.7 unstable, записать build и Steam branch.
-2. Найти фактический каталог игры и DLL; не предполагать прежний RimWorldWin64_Data/Managed.
-3. Посмотреть runtimeconfig/deps, если присутствуют, и metadata TargetFrameworkAttribute у игровых assemblies; записать результат в build-manifest.
-4. Создать локальную приватную read-only копию необходимых reference DLL либо подключить каталог read-only. Записать версии и SHA-256.
-5. Проверить .NET SDK 10, выбранные references и сборку минимальной class library.
-6. На игре загрузить минимальный тестовый мод, проверить Def, пользовательское окно, HediffComp и JobDriver.
-7. Проверить доступность Scribe_Values, Scribe_Collections, Scribe_References, оконного стека, reservation, need-трекеров и stat-механизма.
-8. Перезапустить и повторить загрузку save. Установить действительный путь Player.log.
-9. Зафиксировать положительный результат T0 и удалить временные отладочные данные из release.
+Подтверждено разработчиком: минимальный мод собран в Docker с .NET SDK 10/net10.0 и успешно загружен в RimWorld 1.7 unstable с WaylithCLR. Независимый протокол проверки, build manifest и остальные критерии B00/B01 пока не оформлены.
 
-Пункты 5–9 относятся к будущей разработке; в предпроектном этапе они не выполнялись. До успешного T0 архитектура адаптеров условна. Нельзя объявить технику рабочей только потому, что компилятор нашёл классы.
+Pending B00: точный game build/branch, версия SDK, runtimeconfig/deps и TargetFrameworkAttribute (либо отсутствие), фактические пути, версии и SHA-256 reference DLL; путь Player.log и очищенный протокол. Разработчик проверяет игру, агент читает только явно подключённые файлы; references приватны и read-only.
+
+Pending B01: закрепление SDK и Docker digest/packages, clean offline build, allowlist output без игровых DLL, повтор в новом контейнере с теми же refs; однократная загрузка metadata и Core-only запуск без красных ошибок. Полная приёмка B00/B01 остаётся открытой до этих проверок; закрыть их необходимо до начала B03.
+
+Для перехода к B02 достаточно подтверждённых build/load bootstrap, существующих проекта/metadata и доступных локальных references. Полный manifest и воспроизводимость остаются обязательствами B00/B01, но не требуют повторять уже подтверждённый spike. При смене game build или references повторить затронутый smoke. Проверки API будущих механик не являются входным условием B02.
+
+### Feature API Verification — при реализации задач-владельцев
+
+Все пункты ниже pending. Перед использованием API сверить реальные signatures текущих references и выполнить сценарий задачи; успешная компиляция не заменяет игровую проверку.
+
+| API / проверка | Задача-владелец |
+| --- | --- |
+| Custom Def, XML-загрузка, разрешение ссылок и validation | B02 |
+| HediffComp, Scribe_Values / Scribe_Collections / Scribe_References; ненулевой state и save/reload | B03 |
+| ThingComp float menu, выбранный Pawn, Window и оконный стек, render callbacks | B04 |
+| JobDriver/Toils, pathing, reservation, need-трекеры, draft/interrupt/target loss | B05; сценарии прорыва — B06, чтения — B07 |
+| Сериализация и продолжение либо безопасная отмена Job, единственная итоговая мутация | B06 для прорыва; B05 для медитации; B07 для чтения; общая регрессия — B08 |
+| Рецепт, stack/consume свитка, reservation чтения, Hediff stat offset и реальный blunt armor StatDef/breakdown | B07 |
+
+Общая проверка после перезапуска процесса, off-map/death/resurrection и baseline saves — B08. Проверка окончательной структуры папок и загрузки release archive — B09. Bootstrap не подтверждает ни один из этих API. Архитектура соответствующего адаптера остаётся проектным решением до его проверки.
 
 ## 3. Направление зависимостей
 
@@ -74,7 +85,7 @@ UI вызывает сервисы адаптера; сервис строит s
 | .gitignore | refs, secrets, obj/bin, saves и логи вне git |
 | .local/refs/ | Приватные игровые references; не публикуются |
 
-About.xml обязателен для метаданных, Def и DLL — для предусмотренных механик. Preview и LoadFolders не являются обязательными для любого мода. Не создавать одновременно корневые Assemblies и versioned Assemblies с одинаковыми DLL. Провести тест загрузки version folder на T0.
+About.xml обязателен для метаданных, Def и DLL — для предусмотренных механик. Preview и LoadFolders не являются обязательными для любого мода. Не создавать одновременно корневые Assemblies и versioned Assemblies с одинаковыми DLL. Если version folder будет использован при упаковке, проверить его загрузку в B09; текущий bootstrap использует корневые Assemblies/ и About/.
 
 PackageId базового мода предлагается valentin.pathofcultivation; окончательно выбрать до первого публичного выпуска. DefName всегда с POC_; не менять его ради нового отображаемого названия. About.xml указывает 1.7 только после проверки; 1.6 не добавляется автоматически.
 
@@ -110,7 +121,7 @@ CultivationService — единственное место мутаций сос
 
 ## 7. Jobs, UI и эффекты
 
-| Механика | Выбранная точка расширения | Проверить в T0/реализации |
+| Механика | Выбранная точка расширения | Проверить при реализации (§2) |
 | --- | --- | --- |
 | Меню места | ThingComp с вариантами float menu выбранной пешки | Точная сигнатура CompFloatMenuOptions и выбранный Pawn |
 | Окно | Window_Cultivation и базовый оконный стек | Render callbacks и типы rect/цвета через 1.7 references |
