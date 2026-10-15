@@ -22,3 +22,6 @@ Thumbs.db
 
 # Compiled mod assemblies
 Assemblies/
+
+# Local Codex task context
+.codex-tasks/

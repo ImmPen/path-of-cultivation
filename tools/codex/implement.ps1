@@ -6,9 +6,41 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# UTF-8 for communication with Docker and Codex
+[Console]::InputEncoding = New-Object System.Text.UTF8Encoding($false)
+[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+$OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+
 $repo = (Resolve-Path (Join-Path $PSScriptRoot "../..")).Path
 $image = "pathofcultivation-dev:0.0.2"
 $volume = "pathofcultivation-codex-home"
+
+$logsDir = Join-Path $repo ".codex-tasks\logs"
+New-Item -ItemType Directory -Path $logsDir -Force | Out-Null
+
+$timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+$sessionLog = Join-Path $logsDir "$timestamp-implement-session.log"
+
+# Resolve task file relative to repository root
+$taskPath = Join-Path $repo $Task
+
+if (Test-Path -LiteralPath $taskPath -PathType Leaf) {
+    $relativeTask = [System.IO.Path]::GetRelativePath($repo, (Resolve-Path $taskPath).Path)
+    $relativeTask = $relativeTask.Replace('\', '/')
+
+    Write-Host "Task file: $relativeTask" -ForegroundColor Cyan
+
+    $Task = @"
+Прочитай файл /workspace/$relativeTask.
+Это согласованное техническое задание на реализацию.
+
+Изучи связанные требования в docs/ и существующий код.
+Выполни только описанные в задании изменения.
+Не расширяй область работ.
+После реализации проверь изменения и сообщи результат.
+Не создавай Git-коммиты.
+"@
+}
 
 Write-Host "Codex implementation mode" -ForegroundColor Yellow
 Write-Host "Repository: $repo"
@@ -22,7 +54,10 @@ if ($confirmation -ne "yes") {
     exit 0
 }
 
+$ErrorActionPreference = "Continue"
+
 docker run --rm `
+    --interactive=false `
     --read-only `
     --cap-drop ALL `
     --security-opt no-new-privileges `
@@ -37,8 +72,22 @@ docker run --rm `
     codex exec `
         --model gpt-6.1-sol `
         --sandbox danger-full-access `
-        $Task
+        -- $Task 2>&1 |
+    ForEach-Object {
+        if ($_ -is [System.Management.Automation.ErrorRecord]) {
+            $_.ToString()
+        } else {
+            $_
+        }
+    } |
+    Tee-Object -FilePath $sessionLog
 
-if ($LASTEXITCODE -ne 0) {
-    throw "Codex exited with code $LASTEXITCODE"
+$dockerExitCode = $LASTEXITCODE
+$ErrorActionPreference = "Stop"
+
+if ($dockerExitCode -ne 0) {
+    throw "Codex Implement failed with exit code $dockerExitCode. See $sessionLog"
 }
+
+Write-Host "Implementation completed." -ForegroundColor Green
+Write-Host "Session: $sessionLog"
