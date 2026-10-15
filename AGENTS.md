@@ -1,4 +1,4 @@
-﻿# Path of Cultivation — Codex Instructions
+# Path of Cultivation — Codex Instructions
 
 ## Project
 Path of Cultivation is a RimWorld 1.7 mod written in C# and XML.
