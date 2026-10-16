@@ -1,7 +1,12 @@
 
 param(
-    [Parameter(Mandatory = $true, Position = 0)]
-    [string]$Task
+    [Parameter(Mandatory = $true, Position = 0, ParameterSetName = "Text")]
+    [ValidateNotNullOrEmpty()]
+    [string]$Task,
+
+    [Parameter(Mandatory = $true, ParameterSetName = "File")]
+    [ValidateNotNullOrEmpty()]
+    [string]$TaskFile
 )
 
 $ErrorActionPreference = "Stop"
@@ -12,6 +17,24 @@ $ErrorActionPreference = "Stop"
 $OutputEncoding = New-Object System.Text.UTF8Encoding($false)
 
 $repo = (Resolve-Path (Join-Path $PSScriptRoot "../..")).Path
+
+if ($PSCmdlet.ParameterSetName -eq "File") {
+    $resolvedTaskFile = Resolve-Path -LiteralPath $TaskFile -ErrorAction Stop
+
+    if ($resolvedTaskFile.ProviderPath -notlike "*.md") {
+        throw "TaskFile must be a Markdown (.md) file."
+    }
+
+    $Task = [System.IO.File]::ReadAllText(
+        $resolvedTaskFile.ProviderPath,
+        [System.Text.Encoding]::UTF8
+    )
+}
+
+if ([string]::IsNullOrWhiteSpace($Task)) {
+    throw "Analyze task is empty."
+}
+
 $image = "pathofcultivation-dev:0.0.2"
 $volume = "pathofcultivation-codex-home"
 
@@ -29,10 +52,10 @@ $ErrorActionPreference = "Continue"
 
 docker run --rm `
     --interactive=false `
-	--read-only `
+    --read-only `
     --cap-drop ALL `
     --security-opt no-new-privileges `
-    --tmpfs /tmp:rw,nosuid,nodev,size=64m `
+    --tmpfs "/tmp:rw,nosuid,nodev,size=64m" `
     --env GIT_CONFIG_COUNT=1 `
     --env GIT_CONFIG_KEY_0=safe.directory `
     --env GIT_CONFIG_VALUE_0=/workspace `
@@ -42,18 +65,19 @@ docker run --rm `
     --workdir /workspace `
     $image `
     codex exec `
-        --model gpt-6-luna `
-        --sandbox danger-full-access `
-        --output-last-message "/workspace/.codex-tasks/logs/$timestamp-analyze-result.md" `
-        -- $Task 2>&1 |
-			ForEach-Object {
+    --model gpt-6-luna `
+    --sandbox danger-full-access `
+    --output-last-message "/workspace/.codex-tasks/logs/$timestamp-analyze-result.md" `
+    -- $Task 2>&1 |
+ForEach-Object {
 				if ($_ -is [System.Management.Automation.ErrorRecord]) {
-					$_.ToString()
-				} else {
-					$_
+        $_.ToString()
 				}
-			} |
-			Tee-Object -FilePath $sessionLog
+    else {
+        $_
+				}
+} |
+Tee-Object -FilePath $sessionLog
 		
 $dockerExitCode = $LASTEXITCODE
 
