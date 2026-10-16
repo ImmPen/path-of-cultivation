@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+  <PathOfCultivation.CultivationRealmDef>
+    <defName>POC_BodyTemperingI</defName>
+    <label>Body Tempering I</label>
+    <order>1</order>
+    <progressCap>100</progressCap>
+    <qiCap>20</qiCap>
+    <nextRealm>POC_BodyTemperingII</nextRealm>
+    <breakthroughQiCost>15</breakthroughQiCost>
+    <breakthroughDurationHours>1</breakthroughDurationHours>
+  </PathOfCultivation.CultivationRealmDef>
+  <PathOfCultivation.CultivationRealmDef>
+    <defName>POC_BodyTemperingII</defName>
+    <label>Body Tempering II</label>
+    <order>2</order>
+    <progressCap>0</progressCap>
+    <qiCap>30</qiCap>
+    <breakthroughQiCost>0</breakthroughQiCost>
+    <breakthroughDurationHours>0</breakthroughDurationHours>
+  </PathOfCultivation.CultivationRealmDef>
+</Defs>
