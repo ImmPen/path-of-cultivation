@@ -74,6 +74,9 @@ Implement mode is used to execute a task already approved by the user.
 ## Validation
 
 - Run `dotnet build Source/PathOfCultivation.csproj --no-restore` after C# changes when the build environment permits.
+- After Core calculation rule changes, run inside the agent container: `dotnet test tests/PathOfCultivation.Core.Tests/PathOfCultivation.Core.Tests.csproj --no-restore --configuration Release`.
+- `tools/test.ps1` is for external Windows execution through Docker; use direct `dotnet` in the agent container, without nested Docker.
+- If `project.assets.json` or restored packages are missing, report the specific blocker; preparation uses the existing restore process. Do not enable network access or add dependencies automatically.
 - Report build failures and warnings.
 - Inspect `git diff` after implementation.
 - Check for unintended changes.

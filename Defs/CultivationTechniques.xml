@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+  <PathOfCultivation.CultivationTechniqueDef>
+    <defName>POC_IronBody</defName>
+    <label>Iron Body</label>
+    <description>A passive cultivation technique that toughens the body against blunt impacts.</description>
+    <minRealm>POC_BodyTemperingI</minRealm>
+    <learnDurationHours>2</learnDurationHours>
+    <effectKind>PassiveHediff</effectKind>
+    <effectDef>POC_IronBodyEffect</effectDef>
+  </PathOfCultivation.CultivationTechniqueDef>
+
+  <HediffDef>
+    <defName>POC_IronBodyEffect</defName>
+    <label>Iron Body</label>
+    <description>Passive protection against blunt impacts granted by the Iron Body technique.</description>
+    <hediffClass>Hediff</hediffClass>
+    <isBad>false</isBad>
+    <makesAlert>false</makesAlert>
+    <tendable>false</tendable>
+    <initialSeverity>1</initialSeverity>
+    <maxSeverity>1</maxSeverity>
+    <stages>
+      <li>
+        <statOffsets>
+          <ArmorRating_Blunt>0.10</ArmorRating_Blunt>
+        </statOffsets>
+      </li>
+    </stages>
+  </HediffDef>
+</Defs>

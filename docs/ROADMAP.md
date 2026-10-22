@@ -163,13 +163,31 @@ Spiritual Anatomy — самостоятельное расширение, **н�
 | SA-B — разрушение базовых органов | Destroyed, Meridians/Dantian Reconstruction, внешняя помощь без Qi пациента, возвращение функций | Только после SA-A и Q61; повреждение не выпускается без доступного лечения; это обязательная часть законченной концепции модуля |
 | SA-C — структурные/старшие органы | Сначала Spiritual Foundation injuries, затем Golden Core, Sea of Consciousness, Nascent Spirit по реально выпущенным Realm | Q63, DAG/quality инварианты; каждой разрушимой структуре нужен собственный проверенный repair path |
 | SA-UI | Встраивание Physical/Spiritual switch в настоящий Health | После Q55; отдельный этап при необходимости Harmony, fallback window сохраняется |
-| SA-Combat / Healing | Направленные духовные атаки и counterplay, затем одна лечебная техника | Q62; обычные physical hits не меняются, защита обычной колонии до сильных духовных противников |
+| SA-Combat / Healing | Последовательные research/prototype/armor/melee/composite/equipment/advanced срезы, затем отдельная лечебная техника; см. §4.5 | Q62/Q66–Q75; basic healing и anti-replay до боя, защита обычной колонии до опасных NPC, destruction только с реконструкцией |
 | SA-Medicine | Один выбранный spiritual препарат/метод и цены | После basic therapy/reconstruction, без обязательной новой алхимической системы/профессии |
 | SA-Integrations | По отдельности поздний extreme-Strain injury bridge и species spiritual anatomy | Q65; не переносить harm в Ambient 0.4.2 или human органы животным; optional DLC отдельно |
 
 SA-B и остальные этапы оцениваются после SA-A; не суммировать неопределённые расширения в прежние сроки 1.0 и не называть незавершённый модуль полной поддержкой Spiritual Destruction. Раннюю публичную версию явно маркировать Wound/Scar-only. Откладывание этапа не удаляет Destruction из окончательного дизайна.
 
 Малые последовательные задания SA-A: API/read-only spike → profile/rules присутствия и injury arithmetic → lazy owner на обычном человеке и round-trip → один controlled event с receipt → natural healing/scar decision/save → qi/action bridge → терапия и UI → lifecycle/performance/base-only regression. После каждого шага проверка до следующего; никакой реализации сейчас. Scope cut: только два органа, один aggregate на тип, одно окно вместо сложного Health patch. Не сокращать восстановление, anti-replay и запрет потери Realm/Progress/Q.
+
+### 4.5. SA-Combat / Healing: последовательность будущих боевых срезов
+
+Это раскрытие существующей ветки §4.4, не новый релиз или задача MVP. Номера/даты таблицы, milestones 0.1.0–1.0 и срок MVP около 10 ноября 2026 года не меняются. Оценка часов/номер дополнительного выпуска — после Combat Research и отдельного согласования. Этапы ниже — предложения отдельных заданий, не одно разрешение на реализацию всей системы. Правила — GDD §17, архитектура — TECHNICAL_DESIGN §17, вопросы — RESEARCH §13.
+
+| Этап | Зависимости и минимальный объём | Проверяемая приёмка |
+| --- | --- | --- |
+| Combat Research | Для read-only spike нужны актуальные refs/manifest; SA0 health contracts изучены. Q66–Q71, план Q68/Q73; без реализации боя | Реальные signatures/call order, выбор безопасного worker либо adapter, melee и stat/Stuff extension points, DLC inventory и ограничения; неподтверждённое остаётся pending |
+| Spiritual Damage Prototype | Combat Research + **реально принятый SA-A**: health owner/receipts, basic healing/UI и cultivation bridge. Один тип POC_Spiritual, одна контролируемая техника, только Wound Meridians | W≤3500, no new scar/no destruction, обычный dormant пациент/культиватор, один расход/эффект после повторного callback/load, физическое здоровье и достижения неизменны; без нового AI/рейдов |
+| Spiritual Armor | Prototype и Q69; одна вычисляемая POC_SpiritualArmor, natural resistance и один подтверждённый технологический предмет, например Marine | Формула/cap/source dedup, до/после надевания, save без stacking; обычный физический урон прежний, база без Royalty; P=0/A=0 |
+| Melee Integration | Armor + Q67/Q68/Q73, подтверждённая техника/Personal Qi/cooldown | Один Spiritual Strike только носителю техники, weighted selection, insufficient Qi исключает вариант, замена физического удара, cancel/miss/interrupt/save по GDD §17.2; один hit/расход/урон |
+| Composite Techniques | Melee Integration + Q72 и доказанный source/physical/health receipt lifecycle | Одна явно оплаченная physical+spiritual техника, общий hit/budget; miss без второго попадания, partial invalid target и exception без replay/двойного урона; если атомарность недоказуема, этап блокирован |
+| Equipment Expansion | Armor и предыдущие срезы, Q70/Q71; Recon/Marine и совместимая Hyperweave-одежда, затем отдельный optional Royalty пакет | Одна material-family, отсутствие recipe-plasteel бонуса, quality default1; base-only и Royalty on/off, Cataphract/Prestige/Eltex только конкретным предметам, без обязательной DLC |
+| Advanced Combat | Предыдущие срезы, соответствующий SA-C organ bridge и Q74/Q75; targeted damage, spiritual penetration, active defence и NPC отдельными малыми задачами | NoEligibleOrgan без fallback, P не усиливает входной D, одна цена A, проверенный counterplay обычной колонии. Любой destruction требует **принятой реконструкции именно этого органа**: SA-B/Q61 для базовых, SA-C/Q63 для старших |
+
+SA-B не блокирует ограниченный Wound-only prototype: он не создаёт Destruction. Техники, способные разрушать, до repair gate недоступны, даже если API уже работает. Sea of Consciousness не получает lethal/downed эффекты; общий профиль70/25/5 нельзя включать до health поддержки всех его целей. Контролируемый внутренний Wound-only прототип разрешён до готовой экипировки защиты, без новых рейдов и обычного вражеского распространения техники. Выпуск духовной угрозы в обычный игровой процесс, включая опасных NPC, допускается только после проверки Q74: counterplay технологической некультивирующей колонии и доступного лечения без Qi пациента; исключение для внутреннего прототипа этот gate не снимает.
+
+После этих боевых срезов — **отдельная** Healing Technique: один способ помогать внешнему пациенту с ценой времени/Qi лекаря и cooldown, без полного боевого ремонта, по GDD §16.6. Зависит от принятой basic therapy/health lifecycle, не подменяет их и не откладывает доступное лечение первого prototype до конца боевой ветки. Следующий этап разрешается только отдельным заданием после приёмки предыдущего.
 
 ## 5. Риски и действия
 

@@ -353,3 +353,42 @@ H: самостоятельный поздний пример P=0.30,A=0.50,M=0.
 - D: никакой автоматической потери Q от Foundation organ injury; POC_Foundation Realm, quality и physical function строго разделены. Травматическое повреждение не является Foundation Reforging, ранее объявленные затраты неудачи учитываются отдельно.
 - D: 0.4.2 не получает необратимые повреждения; без отдельного bridge Strain не наносит wounds. Healing не заменяет vanilla физическую медицину, не лечит автоматически старые physical scars и не обходит потребности пациента.
 - U: безопасный native Health switch не доказан; собственное окно — начальная проверяемая альтернатива, native toggle остаётся целевым UX. Весь модуль — отдельные предложенные milestones без перенумерации существующего roadmap.
+
+## 13. Spiritual Damage & Spiritual Defense: дополнение 22 октября 2026 года
+
+### 13.1. Факты, проектные решения и предел проверки
+
+**Локальное наблюдение:** прочитаны текущие исходники и проект. CultivationRealmDef и bootstrap Mod существуют; Core пока каркас с проверкой отсутствия игровых references. Предлагаемые SpiritualHealthService/CultivationService/HediffComp и боевые обработчики в исходниках не реализованы. Наличие дизайна Spiritual Anatomy не закрывает SA0/SA-A или combat gates.
+
+Read-only проверка `References/Assembly-CSharp.dll`: SHA-256 `a97a01c4319414414c0ca39f3565215e83300dc608dc94b69a27720095b4e751`. Простой поиск строк обнаружил `DamageWorker`, `DamageWorker_AddInjury`, `ManeuverDef`, `Verb_MeleeAttackDamage`, `StuffProperties`, `statOffsets`, `statFactors`, `stuffProps`. Это **только строковые имена**, не верификация TypeDef, namespace, public signatures, override или callback order. Отсутствие отдельной строки не доказывает отсутствие типа. Точный game build по этой проверке не установлен, B00 manifest остаётся pending. DLL не изменялись и не публикуются.
+
+**D:** единый POC_Spiritual; Spiritual Strike заменяет одно melee действие; shared hit/budget для composite; virtual organs и HealthService из §12 сохраняют ответственность. Spiritual Armor сочетает natural/equipment/cultivation, базовая технологическая защита работает без Royalty. Формула и примеры — GDD §17.6; transport/fallback — TECHNICAL_DESIGN §17.
+
+**H/U:** сигнатуры DamageDef/DamageWorker/DamageInfo, Tool/ManeuverDef, выбор melee, stat и Stuff pipeline на актуальной 1.7 **не подтверждены**. Предпочтительный worker не объявляется рабочим решением. Полный read-only metadata/call-path spike и игровые эксперименты вынесены в Combat Research; никакой старый API 1.6 или строковый поиск их не заменяет. Не закрывать вопросы ниже по этому документу.
+
+### 13.2. Реестр Combat Research и последующих проверок
+
+Все пункты pending; расширяют Q62, не заменяют SA0 Q54–Q60/Q64 и не блокируют MVP.
+
+| ID | Вопрос | Проверка / критерий закрытия | Этап-владелец |
+| --- | --- | --- | --- |
+| Q66 | Каковы реальные namespaces/signatures DamageDef, DamageWorker, DamageInfo и вызовы damage pipeline? | На закреплённом build найти metadata, порядок вызовов и result contract; один spiritual payload без Physical Injury/BodyPartRecord/bleeding/death; проверить hostility/log/retaliation, зафиксировать worker либо минимальный adapter ADR | Combat Research; игровой smoke — Prototype |
+| Q67 | Где выбираются melee варианты и веса; что позволяют Tool/ManeuverDef/verbs? | Подтвердить extension point для конкретного носителя техники, доступность по Qi/organ/weapon, hit/warmup/recovery callbacks; без изменения всех оружий, второго selector/hit или бесплатного удара | Combat Research → Melee Integration |
+| Q68 | Каковы точка release и save/cancel/reentrant semantics атаки? | Prepared без цены, Released с одной ценой/cooldown, miss/interrupt/no-target; source payload/receipts после 10 reload и исчезновения source не replay; подтвердить границу без yield/save внутри commit | Combat Research → Prototype/Melee |
+| Q69 | Как добавить вычисляемый pawn StatDef и breakdown для Spiritual Armor? | Подтвердить stat extension/единицы, natural+equipment+cultivation source IDs, cap и отсутствие physical armor изменений; UI/getter не оплачивают active defence, save не копит bonus | Combat Research → Spiritual Armor |
+| Q70 | Как фактически устроены Stuff и готовые stats одежды? Есть ли отдельный StuffDef? | Проверить реальные ThingDef/StuffProperties/модификаторы; совместимая Hyperweave вещь получает бонус один раз, несколько вещей — один лучший material-family, recipe plasteel не даёт бонус | Combat Research → Equipment Expansion |
+| Q71 | Какие реальные defNames и DLC gates у Recon/Marine/Hyperweave и Cataphract/Prestige/Eltex? | Private vanilla Def inventory, base-only launch, затем Royalty on/off; explicit bonuses без обязательных DLC ссылок/предположения об универсальном Eltex Stuff | Combat Research → Armor/Equipment Expansion |
+| Q72 | Можно ли применить composite с at-most-once для физического и духовного компонентов? | Один hit/цена, стабильные component IDs/order, source/target receipts; повтор callback/save, physical death между компонентами и injected failure → нет второго physical damage; pending diagnostic при неопределённом исходе | Composite Techniques |
+| Q73 | Какие конфликтуют нестандартные оружия и сторонние melee selectors? | Matrix конкретных модов/версий, graceful disable только нашего варианта при отсутствующем hook; vanilla поведение сохранено. Combat Extended только отдельным адаптером и специальной приёмкой | Melee Integration; CE отдельно |
+| Q74 | Достаточны ли defence, safe wounds и лечение для обычной колонии/NPC? | Одинаковый threat budget, melee/ranged, natural/equipment defence, Qi exhaustion, targeted/composite exploits; обратимые ранние раны, доступная помощь без Qi пациента; NPC используют те же ограничения | До hostile release; Advanced Combat |
+| Q75 | Как безопасно включать активную защиту и spiritual penetration? | P не повышает D, не снимает health limits, не пробивает physical armor; A после passive/P, одна активация/цена на действие, cap/нет пассивного immunity; с insufficient Qi A=0 | Advanced Combat |
+
+Артефакт Combat Research: точный build/ветка, hash private references, короткий перечень подтверждённых сигнатур/доступности и call order, выбор worker/fallback и melee hook с ограничениями. Код игры/DLL в отчёт не копировать. Компиляция будущего адаптера подтверждает только доступность API; игровых побочных эффектов она не подтверждает.
+
+### 13.3. Гипотезы баланса и согласованность
+
+Предложенные passive cap60%, active total cap80%, Recon10%/Marine15%/Cataphract20%, Hyperweave5–10%, веса70/25/5 и влияние mastery не утверждены плейтестом. Natural resistance не выведена из Affinity/Q. Quality по умолчанию без множителя; для Eltex/Prestige чисел пока нет. Проверить время functional downtime и лечения наряду с DPS: здоровье B=10000 не сопоставляется напрямую с physical HP.
+
+Новый combat профиль Meridians W≤3500/no new scars/no destruction намеренно строже добровольного источника SA-A: общая scar policy/порог и лечение из GDD §16 не переписаны. Обычный dormant пациент поддержан; орган выбирается по наличию/формированию, не по одной активации. Сохраняются W/S/Destroyed и organ receipt, запрет изменения Realm/Progress/Q/mastery, отсутствие lethal consciousness effects и зависимости без каскада травм. При наличии destruction gate конкретной реконструкции обязателен, включая SA-B/Q61 для базовых органов и SA-C/Q63 для старших. До этого опасные targeted профили не выпускаются.
+
+Найдено уточнение прежнего ROADMAP SA-Combat: исходная строка сразу называла направленные атаки. Она теперь раскрывается последовательностью research → безопасный general/ограниченный Meridians prototype → armor → melee → composite → equipment → advanced targeting/NPC. Это уточнение будущей ветки, а не подтверждение её реализации или изменение существующих релизов. Healing technique остаётся отдельным небольшим заданием после basic therapy; не подменяет доступное лечение первого боевого среза.
