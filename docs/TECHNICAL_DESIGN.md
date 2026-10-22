@@ -206,7 +206,7 @@ Restore/download происходит отдельным ограниченны�
 
 Общая политика автоматизированных проверок и отчётности — [CODEX_GUIDELINES §7](CODEX_GUIDELINES.md#7-проверки-в-рабочем-цикле-и-перед-коммитом). Сценарии и критерии приёмки B02–B09 — [MVP_BACKLOG §2](MVP_BACKLOG.md#2-приёмка-по-задачам).
 
-Фактическая инфраструктура: существует один проект мода `Source/PathOfCultivation.csproj` (net10.0) с references на игровые сборки и команда сборки в `tools/build.ps1`; среда SDK описана в `tools/docker/Dockerfile`. Тестовые проекты, runner/framework и конфигурация CI в репозитории отсутствуют. Core/Core.Tests из §3–4 пока являются планом; перед запуском соответствующих тестов нужна отдельно согласованная подготовка инфраструктуры по указанной политике.
+Фактическая инфраструктура: существуют проект мода `Source/PathOfCultivation.csproj` (net10.0) с references на игровые сборки, независимый Core-проект `src/PathOfCultivation.Core/PathOfCultivation.Core.csproj` (net10.0) и MSTest-проект `tests/PathOfCultivation.Core.Tests/PathOfCultivation.Core.Tests.csproj` (net10.0) со ссылкой на Core. Core пока не подключён к проекту мода; расчёты Progress/Qi ещё не реализованы. Единственный smoke-тест `tests/PathOfCultivation.Core.Tests/CoreAssemblyTests.cs` проверяет имя сборки Core и отсутствие прямых ссылок на игровые сборки. Скрипт `tools/nuget-restore.ps1` выполняет отдельный restore с сетью; `tools/test.ps1` запускает `dotnet test --no-restore` в Docker без сети, с read-only NuGet volume и выбором Debug/Release (по умолчанию Release). Сборка мода запускается через `tools/build.ps1`; среда SDK описана в `tools/docker/Dockerfile`. Конфигурация CI отсутствует. Наличие smoke-теста не подтверждает реализацию или проверку расчётов B02.
 
 Планируемое разделение проверок:
 
