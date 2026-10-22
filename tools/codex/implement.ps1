@@ -67,6 +67,8 @@ docker run --rm `
     --env GIT_CONFIG_VALUE_0=/workspace `
     --mount "type=bind,source=$repo,target=/workspace" `
     --mount "type=volume,source=$volume,target=/home/developer/.codex" `
+    --mount "type=volume,source=poc-nuget-packages,target=/home/developer/.nuget/packages" `
+    --env "NUGET_PACKAGES=/home/developer/.nuget/packages" `
     --workdir /workspace `
     $image `
     codex exec `
