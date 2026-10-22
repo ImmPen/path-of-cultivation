@@ -68,6 +68,7 @@ docker run --rm `
     --mount "type=bind,source=$repo,target=/workspace" `
     --mount "type=volume,source=$volume,target=/home/developer/.codex" `
     --mount "type=volume,source=poc-nuget-packages,target=/home/developer/.nuget/packages" `
+    --mount "type=bind,source=D:\SteamLibrary\steamapps\common\RimWorld\Data\Core\Defs,target=/game-data/Core/Defs,readonly" `
     --env "NUGET_PACKAGES=/home/developer/.nuget/packages" `
     --workdir /workspace `
     $image `
